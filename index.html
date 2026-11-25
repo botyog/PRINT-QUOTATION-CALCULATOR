@@ -86,10 +86,10 @@ const $=id=>document.getElementById(id);
 const UN={inch:{n:'Inch',f:1,w:'inches'},cm:{n:'CM',f:2.54,w:'cm'},mm:{n:'MM',f:25.4,w:'mm'}};
 let G='inch',GR='0.40',items=[],IX=null,loc=null;
 const blank=()=>({name:'',unit:null,rate:null,w:'',h:'',qty:'',mat:'100 GSM - Water Proof / Computerized Precision/ Die-cut / Ready to peel.'});
-const num=v=>parseFloat(v)||0,r2=v=>Math.round((v+1e-9)*100)/100,fmt=v=>String(parseFloat(v)||0);
+const num=v=>parseFloat(String(v).replace(',','.'))||0,r2=v=>Math.round((v+1e-9)*100)/100,r3=v=>Math.round((v+1e-9)*1000)/1000,fmt=v=>String(num(v));
 const money=v=>'P '+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function calc(it){const f=UN[it.unit||G].f,pp=r2((num(it.w)/f)*(num(it.h)/f)*(it.rate==null?num(GR):num(it.rate)));return{pp,tot:r2(pp*num(it.qty))};}
+function calc(it){const f=UN[it.unit||G].f,pp=r2(r3((num(it.w)/f)*(num(it.h)/f)*(it.rate==null?num(GR):num(it.rate))));return{pp,tot:r2(pp*num(it.qty))};}
 function renderItems(){
   $('items').innerHTML=items.map((it,i)=>{const u=it.unit||G;
   return `<div class="item" data-i="${i}"><div class="r1"><button class="x" data-a="del">X</button><b>${i+1}.</b><input class="nm" data-k="name" value="${esc(it.name)}"><span class="pr"></span></div>
