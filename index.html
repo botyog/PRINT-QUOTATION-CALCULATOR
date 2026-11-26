@@ -27,7 +27,7 @@ body{margin:0;background:var(--gr);font:15px/1.35 Arial,Helvetica,sans-serif;col
 .tot{display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px}
 .tot b{background:#0c6ba7;color:#fff;font-size:22px;padding:8px 20px;border-radius:12px}
 .box hr{border:0;border-top:3px solid #68bd40;margin:14px 0 12px}
-.bd{font-size:14px}.it{margin:10px 0 14px}.it .r{display:flex;justify-content:space-between;gap:10px}
+.bd{font-size:14px}.it{margin:10px 0 14px;display:flex;justify-content:space-between;gap:10px}.il{flex:1;min-width:0}.ir{display:flex;flex-direction:column;align-items:flex-end;gap:6px}.ir b{white-space:nowrap}#copy .ir img{width:auto;max-width:96px;max-height:80px;display:block;border-radius:3px}
 .it ul{list-style:none;margin:0;padding:0 0 0 20px}
 .in{padding:18px 14px 26px}
 input,select,textarea{font:inherit;font-size:16px;padding:4px 6px;border:0;border-radius:3px;background:#fff;color:#111}
@@ -46,6 +46,7 @@ input,select,textarea{font:inherit;font-size:16px;padding:4px 6px;border:0;borde
 .pr{color:#111;font-weight:800;min-width:92px;text-align:right}
 .r2{display:flex;gap:12px;margin:8px 0 0 34px}
 .r2 label,.r3 label{display:flex;align-items:center;gap:6px}.r2 label{flex:1;justify-content:flex-end}.r2 input,.r2 select{width:84px;text-align:right}.r2 select{text-align-last:right}
+.drop{border:2px dashed #fff;border-radius:10px;padding:16px;text-align:center;cursor:pointer;font-size:14px;margin-top:2px}.drop.on{background:rgba(255,255,255,.25)}.prev{display:flex;align-items:center;gap:12px;margin-top:8px}.prev img{max-width:120px;max-height:90px;background:#fff;border-radius:4px}
 .li{display:flex;align-items:center;gap:8px;margin:10px 0}.ln{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.btn.sm{font-size:14px;padding:6px 12px}.ed{padding:18px 14px 26px}
 .ed input,.ed select,.ed textarea{text-align:left}.ed select{text-align-last:left}
 .r3{margin:8px 0 0 34px}.r3 label{align-items:flex-start}.r3 textarea,.r3 input{flex:1;min-width:0}
@@ -79,13 +80,15 @@ input,select,textarea{font:inherit;font-size:16px;padding:4px 6px;border:0;borde
 <div class="r2" style="margin-left:0"><label>Width:<input id="e_w" inputmode="decimal"></label><label>Height:<input id="e_h" inputmode="decimal"></label></div>
 <div class="r2" style="margin-left:0"><label>Cost per sq. inch:<input id="e_rate" inputmode="decimal"></label></div>
 <div class="cg"><label class="f" style="margin-top:10px">Material<textarea id="e_mat" rows="3" style="width:100%;margin-top:2px"></textarea></label></div>
+<div class="cg"><div class="f" style="margin-top:10px;font-size:13px">Thumbnail (optional)</div><div class="f"><div class="drop" id="e_drop">Drag an image here, or tap to choose one</div></div><div class="f prev" id="e_prev" hidden><img id="e_img" alt=""><button class="btn sm red" id="e_rm">REMOVE</button></div></div>
+<input type="file" id="e_file" accept="image/*" hidden>
 <div class="row" style="margin-top:18px"><button class="btn red" id="e_clr">CLEAR</button><button class="btn wht" id="e_done">DONE</button></div></div></div>
 <div class="mod" id="mod" hidden><div class="mb"><p>ALL INFORMATIONS INPUTED WILL BE DELETED</p><div class="row"><button class="btn wht" id="mn">CANCEL</button><button class="btn red" id="my">DELETE</button></div></div></div>
 <script>
 const $=id=>document.getElementById(id);
 const UN={inch:{n:'Inch',f:1,w:'inches'},cm:{n:'CM',f:2.54,w:'cm'},mm:{n:'MM',f:25.4,w:'mm'}};
 let G='inch',GR='0.40',items=[],IX=null,loc=null;
-const blank=()=>({name:'',unit:null,rate:null,w:'',h:'',qty:'',mat:'100 GSM - Water Proof / Computerized Precision/ Die-cut / Ready to peel.'});
+const blank=()=>({name:'',unit:null,rate:null,img:'',w:'',h:'',qty:'',mat:'100 GSM - Water Proof / Computerized Precision/ Die-cut / Ready to peel.'});
 const num=v=>parseFloat(String(v).replace(',','.'))||0,r2=v=>Math.round((v+1e-9)*100)/100,r3=v=>Math.round((v+1e-9)*1000)/1000,fmt=v=>String(num(v));
 const money=v=>'P '+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -107,8 +110,8 @@ function update(){
     if(num(it.qty))L.push(`${num(it.qty).toLocaleString('en-US')} ${num(it.qty)===1?'piece':'pieces'}`);
     if(c.pp)L.push(`P${c.pp.toFixed(2)} pesos per piece`);
     if(it.mat.trim())L.push(it.mat.trim());
-    html+=`<div class="it"><div class="r"><span>${n}. ${esc(it.name.toUpperCase())}</span><b>${money(c.tot)}</b></div><ul>${L.map(x=>`<li>- ${esc(x)}</li>`).join('')}</ul></div>`;});
-  $('bd').innerHTML=html;$('tot').textContent=money(total);$('tl').textContent=(items.length===1&&num(items[0].qty)===1)?'Cost Per Label:':'Total Print Cost Quotation:';
+    html+=`<div class="it"><div class="il"><div>${n}. ${esc(it.name.toUpperCase())}</div><ul>${L.map(x=>`<li>- ${esc(x)}</li>`).join('')}</ul></div><div class="ir"><b>${money(c.tot)}</b>${it.img?`<img src="${it.img}" alt="">`:''}</div></div>`;});
+  $('bd').innerHTML=html;$('tot').textContent=money(total);$('tl').textContent=(items.length===1&&num(items[0].qty)===1)?'Cost Per Label:':'Total Print Cost Quotation:';document.querySelector('.tot').hidden=items.length>1&&items.every(it=>num(it.qty)===1);
   const ad=[$('st').value.trim(),loc&&loc.city,loc&&[loc.prov,loc.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
   $('ci').innerHTML=`<div class="d">${date}</div>`+[['Client',$('cl').value],['Address',ad],['Contact Person',$('cp').value],['Contact No.',$('ctc').value],['Barangay',$('brgy').value]].filter(r=>r[1].trim()).map(r=>`<div>${r[0]}: ${esc(r[1].trim().toUpperCase())}</div>`).join('');
   const ov=items.some(it=>it.unit&&it.unit!==G);$('allb').className='btn '+(ov?'wht':'red');$('gu').value=ov?'':G;const rv=items.some(it=>it.rate!=null);$('allr').className='btn '+(rv?'wht':'red');if(document.activeElement!==$('rate'))$('rate').value=rv?'VARIED':f2(GR);
@@ -136,11 +139,13 @@ $('sj').onclick=async()=>{try{msg('Preparing image...');const cv=await shot();co
 $('sp').onclick=async()=>{try{msg('Preparing PDF...');const cv=await shot();if(!window.jspdf)throw new Error('PDF tool did not load. Check your connection.');
   const W=360,H=W*cv.height/cv.width,p=new jspdf.jsPDF({unit:'pt',format:[W,H],orientation:H>W?'p':'l'});
   p.addImage(cv.toDataURL('image/jpeg',0.95),'JPEG',0,0,W,H);await save(fname('pdf'),p.output('blob'));}catch(e){msg(e.message);}};
-$('sx').onclick=()=>{if(!window.XLSX){msg('Excel tool did not load. Check your connection.');return;}
+$('sx').onclick=async()=>{if(!window.XLSX){msg('Excel tool did not load. Check your connection.');return;}
   const info=[['Field','Value'],['Client',$('cl').value],['Address',$('st').value],['Contact person',$('cp').value],['Contact',$('ctc').value],['Barangay',$('brgy').value],['City',loc?loc.city:''],['Province',loc?loc.prov:''],['ZIP',loc?loc.zip:''],['Cost per sq. inch',num(GR)],['All units',G]];
   const rows=[['Item','Unit','Width','Height','Pieces','Material','Cost per piece','Total','Cost per sq. inch']];
   items.forEach(it=>{const c=calc(it);rows.push([it.name,UN[it.unit||G].n,num(it.w),num(it.h),num(it.qty),it.mat,c.pp,c.tot,it.rate==null?num(GR):num(it.rate)]);});
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(info),'Info');XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Items');
+  const th=[['Item no.','Thumbnail (image code - do not edit)']];for(let i=0;i<items.length;i++){if(items[i].img){const s=await smallImg(items[i].img);if(s)th.push([i+1,s]);}}
+  if(th.length>1)XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(th),'Thumbs');
   save(fname('xlsx'),XLSX.write(wb,{bookType:'xlsx',type:'array'}));};
 $('lx').onclick=()=>{if(!window.XLSX){msg('Excel tool did not load. Check your connection.');return;}$('fx').click();};
 $('fx').onchange=async()=>{const f=$('fx').files[0];if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
@@ -149,7 +154,8 @@ $('fx').onchange=async()=>{const f=$('fx').files[0];if(!f)return;try{const wb=XL
   Object.keys(m).forEach(k=>$(m[k]).value=inf[k]??'');loc=inf.City?{city:String(inf.City),prov:String(inf.Province||''),zip:String(inf.ZIP||'')}:null;$('zh').textContent=loc?[loc.city,loc.prov,loc.zip].filter(Boolean).join(', '):'';
   GR=f2(inf['Cost per sq. inch']||0.4);G=String(inf['All units']||'inch').toLowerCase();if(!UN[G])G='inch';$('gu').value=G;
   items=XLSX.utils.sheet_to_json(wb.Sheets.Items,{header:1}).slice(1).filter(r=>r.length).map(r=>{const u=String(r[1]||'').toLowerCase();
-    return{name:String(r[0]??''),unit:UN[u]&&u!==G?u:null,w:r[2]||'',h:r[3]||'',qty:r[4]||'',mat:String(r[5]??''),rate:(r[8]!=null&&r[8]!==''&&Math.abs(num(r[8])-num(GR))>1e-9)?String(r[8]):null};});
+    return{name:String(r[0]??''),unit:UN[u]&&u!==G?u:null,w:r[2]||'',h:r[3]||'',qty:r[4]||'',mat:String(r[5]??''),img:'',rate:(r[8]!=null&&r[8]!==''&&Math.abs(num(r[8])-num(GR))>1e-9)?String(r[8]):null};});
+  if(wb.Sheets.Thumbs)XLSX.utils.sheet_to_json(wb.Sheets.Thumbs,{header:1}).slice(1).forEach(r=>{const k=(+r[0])-1;if(items[k]&&typeof r[1]==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(r[1]))items[k].img=r[1];});
   if(!items.length)items=[blank()];renderItems();update();msg('Loaded '+f.name);}catch(e){msg('Could not read that Excel file.');}$('fx').value='';};
 function ix(){if(IX)return IX;const D=JSON.parse($('d').textContent);IX=[];
   D.b.forEach((g,i)=>{const mu=D.m[i];g.split('|').forEach(nm=>IX.push([nm,mu,(nm+' '+mu[0]+' '+mu[1]).toLowerCase()]));});return IX;}
@@ -168,7 +174,7 @@ function fit(el){const ta=el.tagName==='TEXTAREA',over=()=>ta?el.scrollHeight>el
 function fitAll(){['e_name','e_mat'].forEach(id=>fit($(id)));}
 renderItems=function(){$('items').innerHTML=items.map((it,i)=>`<div class="item li" data-i="${i}"><button class="x" data-a="del">X</button><span class="ln">${i+1}. ${esc(it.name||'(no name)')}</span><span class="pr">${money(calc(it).tot)}</span><button class="btn sm" data-a="edit">EDIT</button></div>`).join('');};
 let cur=-1;const MAIN=()=>document.querySelector('.in');
-function openEdit(i){cur=i;const it=items[i];$('et').textContent='ITEM '+(i+1);$('e_name').value=it.name;$('e_unit').value=it.unit||G;$('e_qty').value=it.qty;$('e_w').value=it.w;$('e_h').value=it.h;$('e_mat').value=it.mat;$('e_rate').value=f2(it.rate==null?GR:it.rate);$('copy').hidden=true;MAIN().hidden=true;$('edit').hidden=false;scrollTo(0,0);fitAll();}
+function openEdit(i){cur=i;const it=items[i];$('et').textContent='ITEM '+(i+1);$('e_name').value=it.name;$('e_unit').value=it.unit||G;$('e_qty').value=it.qty;$('e_w').value=it.w;$('e_h').value=it.h;$('e_mat').value=it.mat;$('e_rate').value=f2(it.rate==null?GR:it.rate);showImg();$('copy').hidden=true;MAIN().hidden=true;$('edit').hidden=false;scrollTo(0,0);fitAll();}
 function closeEdit(){cur=-1;$('edit').hidden=true;$('copy').hidden=false;MAIN().hidden=false;renderItems();update();scrollTo(0,0);}
 const eh=ev=>{if(cur<0)return;if(ev.target.id==='e_name')capEl(ev.target);const m={e_name:'name',e_qty:'qty',e_w:'w',e_h:'h',e_mat:'mat'},id=ev.target.id,it=items[cur];if(id==='e_unit')it.unit=ev.target.value===G?null:ev.target.value;else if(id==='e_rate'){const v=ev.target.value.trim();it.rate=(v===''||Math.abs(num(v)-num(GR))<1e-9)?null:v;if(ev.type==='change')ev.target.value=f2(it.rate==null?GR:it.rate);}else if(m[id])it[m[id]]=ev.target.value;if(id==='e_name'||id==='e_mat')fit(ev.target);update();};
 $('edit').addEventListener('input',eh);$('edit').addEventListener('change',eh);
@@ -176,6 +182,17 @@ $('e_done').onclick=closeEdit;
 $('e_clr').onclick=()=>ask(()=>{if(cur<0)return;Object.assign(items[cur],blank());openEdit(cur);update();});
 $('items').addEventListener('click',ev=>{if(ev.target.dataset.a==='edit')openEdit(+ev.target.closest('.item').dataset.i);});
 function f2(v){return num(v).toFixed(2);}
+function thumbFrom(file){return new Promise(res=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const M=300,r=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*r));c.height=Math.max(1,Math.round(im.height*r));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.88));};im.onerror=()=>res('');im.src=fr.result;};fr.onerror=()=>res('');fr.readAsDataURL(file);});}
+function smallImg(src){return new Promise(res=>{const im=new Image();im.onload=()=>{for(const M of [200,160,120,90,64])for(const q of [0.8,0.6,0.45]){const r=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.width*r));c.height=Math.max(1,Math.round(im.height*r));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);const u=c.toDataURL('image/jpeg',q);if(u.length<30000){res(u);return;}}res('');};im.onerror=()=>res('');im.src=src;});}
+async function setImg(file){if(cur<0||!file||file.type.indexOf('image/')!==0)return;items[cur].img=await thumbFrom(file);showImg();update();}
+function showImg(){const s=cur>=0?(items[cur].img||''):'';$('e_prev').hidden=!s;if(s)$('e_img').src=s;else $('e_img').removeAttribute('src');}
+$('e_drop').onclick=()=>$('e_file').click();
+$('e_file').onchange=()=>{setImg($('e_file').files[0]);$('e_file').value='';};
+['dragenter','dragover'].forEach(t=>$('e_drop').addEventListener(t,ev=>{ev.preventDefault();$('e_drop').classList.add('on');}));
+['dragleave','drop'].forEach(t=>$('e_drop').addEventListener(t,ev=>{ev.preventDefault();$('e_drop').classList.remove('on');}));
+$('e_drop').addEventListener('drop',ev=>setImg(ev.dataTransfer.files[0]));
+$('e_rm').onclick=()=>{if(cur>=0){items[cur].img='';showImg();update();}};
+addEventListener('dragover',ev=>ev.preventDefault());addEventListener('drop',ev=>ev.preventDefault());
 function cap(s){return s.toLowerCase().replace(/(^|[\s(\/-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase());}
 function capEl(el){const s=el.value,c=cap(s);if(s!==c){const p=el.selectionStart,e=el.selectionEnd;el.value=c;try{el.setSelectionRange(p,e);}catch(_){}}}
 $('allr').onclick=()=>{items.forEach(it=>it.rate=null);renderItems();update();};
